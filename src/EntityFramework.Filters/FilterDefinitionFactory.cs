@@ -8,14 +8,14 @@
 
     public class FilterDefinitionFactory<TEntity> : FilterDefinitionFactory where TEntity : class
     {
-        public override FilterDefinition Create(string name, LambdaExpression predicate)
+        public override FilterDefinition Create(string name, LambdaExpression predicate, params Type[] excludeTypes)
         {
             Func<DbContext, IDictionary<string, object>, Expression> dude =
                 (ctxt, queryParams) => ctxt.Set<TEntity>().Where(Transform(predicate, queryParams)).Expression;
 
-            return new FilterDefinition(name, dude);
+            return new FilterDefinition(name, dude, excludeTypes);
         }
-        private static Expression<Func<TEntity, bool>> Transform(LambdaExpression expression, IDictionary<string, object> queryParams)
+        private static Expression<Func<TEntity, bool>> Transform(LambdaExpression expression, IDictionary<string, object> queryParams, params IFilter[] excludeFilters)
         {
             var replacer = new ParameterReplacer(queryParams);
             return (Expression<Func<TEntity, bool>>)replacer.Visit(expression);
@@ -47,6 +47,6 @@
 
     public abstract class FilterDefinitionFactory
     {
-        public abstract FilterDefinition Create(string name, LambdaExpression predicate);
+        public abstract FilterDefinition Create(string name, LambdaExpression predicate, params Type[] excludeTypes);
     }
 }
